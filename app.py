@@ -5,9 +5,11 @@
 from flask import Flask, jsonify, render_template, request
 import json
 import numpy as np
-
+import pandas as pd
+import requests
+import geopy.distance as ps
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,TemplateSendMessage,ImageSendMessage, StickerSendMessage, AudioSendMessage
+    MessageEvent, TextMessage, TextSendMessage,TemplateSendMessage,ImageSendMessage, StickerSendMessage, AudioSendMessage, FlexSendMessage
 )
 from linebot.models.template import *
 from linebot import (
@@ -62,7 +64,7 @@ def event_handle(event):
 
     if msgType == "text":
         msg = str(event["message"]["text"])
-        replyObj = TextSendMessage(text=msg)
+        replyObj = handle_text(msg)
         line_bot_api.reply_message(rtoken, replyObj)
 
     else:
@@ -70,6 +72,245 @@ def event_handle(event):
         replyObj = StickerSendMessage(package_id=str(1),sticker_id=str(sk_id))
         line_bot_api.reply_message(rtoken, replyObj)
     return ''
-
+def flexmessage(query):
+    flex = '''{
+  "type": "bubble",
+  "size": "giga",
+  "direction": "ltr",
+  "header": {
+    "type": "box",
+    "layout": "vertical",
+    "flex": 0,
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "CHECK PICKING",
+            "weight": "bold",
+            "align": "center",
+            "gravity": "center",
+            "contents": []
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          {
+            "type": "text",
+            "text": "POOL :",
+            "weight": "bold",
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": "MCRR",
+            "color": "#2D870DFF",
+            "contents": []
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "margin": "md",
+        "contents": [
+          {
+            "type": "text",
+            "text": "Work Order:",
+            "weight": "bold",
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": "W2206597",
+            "color": "#2D870DFF",
+            "contents": []
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "NAME",
+            "weight": "bold",
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": "REAR SPROCKET DAIICHI WAVE100S(428)-35T",
+            "contents": []
+          }
+        ]
+      },
+      {
+        "type": "separator",
+        "margin": "lg",
+        "color": "#0FED10FF"
+      }
+    ]
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "md",
+    "action": {
+      "type": "uri",
+      "label": "Action",
+      "uri": "https://linecorp.com"
+    },
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "LINENUM",
+                "weight": "bold",
+                "size": "md",
+                "color": "#000000FF",
+                "gravity": "center",
+                "margin": "none",
+                "decoration": "underline",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "ITEMBOM",
+                "weight": "bold",
+                "size": "md",
+                "color": "#000000FF",
+                "gravity": "center",
+                "decoration": "underline",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "ประมาณ",
+                "weight": "bold",
+                "color": "#000000FF",
+                "gravity": "center",
+                "decoration": "underline",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "ตัดจ่ายจริง",
+                "weight": "bold",
+                "color": "#000000FF",
+                "gravity": "center",
+                "decoration": "underline",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "ส่วนต่าง",
+                "weight": "bold",
+                "color": "#000000FF",
+                "gravity": "center",
+                "decoration": "underline",
+                "contents": []
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "1",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "3B020011",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "0.553",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "0.0",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "0.553",
+                "contents": []
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "2",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "3A010106",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "553.000",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "553.0",
+                "contents": []
+              },
+              {
+                "type": "text",
+                "text": "0.000",
+                "contents": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "text": "ตรวจสอบการตัดจ่ายวัตถุดิบ",
+        "size": "xxs",
+        "color": "#AAAAAA",
+        "wrap": true,
+        "contents": []
+      }
+    ]
+  }
+}'''
+    return flex
+def handle_text(inpmessage):
+    
+    if inpmessage == 'ทดสอบ':
+        flex = flexmessage(inpmessage)
+        flex = json.loads(flex)
+        replyObj = FlexSendMessage(alt_text='Flex Message alt text', contents=flex)
+    else:
+        replyObj = FlexSendMessage(text=inpmessage)
+    return replyObj
 if __name__ == '__main__':
     app.run(debug=True)
