@@ -1,5 +1,4 @@
 Flask
-get
 gunicorn
 post
 requests
