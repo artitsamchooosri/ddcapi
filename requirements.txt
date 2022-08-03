@@ -1,9 +1,9 @@
-Flask==2.0.3
+Flask
 get
-gunicorn==19.6.0
+gunicorn
 post
 requests
 wikipedia
 line-bot-sdk
-pandas==1.4.3
+pandas
 googletrans
